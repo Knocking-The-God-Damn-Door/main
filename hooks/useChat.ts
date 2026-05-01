@@ -1,0 +1,99 @@
+"use client";
+
+import { useState, useCallback } from "react";
+import type { Message, ChatApiRequest, ChatApiResponse } from "@/types";
+
+export function useChat() {
+  const [messages,      setMessages]      = useState<Message[]>([]);
+  const [isLoading,     setIsLoading]     = useState(false);
+  const [doorOpened,    setDoorOpened]    = useState(false);
+  const [doorOpenedNow, setDoorOpenedNow] = useState(false);
+  const [knockCount,    setKnockCount]    = useState(0);
+
+  const sendMessage = useCallback(
+    async (text: string) => {
+      if (!text.trim() || isLoading || doorOpened) return;
+
+      const userMsg: Message = {
+        id: crypto.randomUUID(),
+        role: "user",
+        content: text.trim(),
+        createdAt: new Date(),
+      };
+
+      setMessages((prev) => [...prev, userMsg]);
+      setIsLoading(true);
+      setDoorOpenedNow(false);
+
+      try {
+        const body: ChatApiRequest = {
+          message: text.trim(),
+          knockCount,
+          alreadyOpen: doorOpened,
+        };
+
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+
+        const data: ChatApiResponse = await res.json();
+
+        const botMsg: Message = {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: data.message,
+          sentimentScore: data.sentiment_score,
+          isRejection: data.is_rejection,
+          isDoorOpening: data.door_opened,
+          createdAt: new Date(),
+        };
+
+        setMessages((prev) => [...prev, botMsg]);
+
+        if (data.is_rejection) {
+          setKnockCount((c) => c + 1);
+        }
+
+        if (data.door_opened) {
+          setDoorOpened(true);
+          setDoorOpenedNow(true);
+        }
+
+        // Generate and play TTS for EVERY bot response
+        if (data.message) {
+          fetch("/api/tts", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: data.message }),
+          })
+            .then((res) => {
+              if (!res.ok) throw new Error("TTS failed");
+              return res.blob();
+            })
+            .then((blob) => {
+              const url = URL.createObjectURL(blob);
+              const audio = new Audio(url);
+              audio.play().catch((e) => console.warn("Audio error:", e));
+            })
+            .catch((err) => console.warn("TTS skipped:", err));
+        }
+      } catch {
+        const errMsg: Message = {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: "The line went dead.",
+          createdAt: new Date(),
+          isRejection: true,
+        };
+        setMessages((prev) => [...prev, errMsg]);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [isLoading, doorOpened, knockCount]
+  );
+
+  return { messages, isLoading, doorOpened, doorOpenedNow, knockCount, sendMessage };
+}

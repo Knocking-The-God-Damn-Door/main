@@ -1,0 +1,126 @@
+@import "tailwindcss";
+
+/* ─── 1973 Temel Değişkenler ─────────────────────────────── */
+:root {
+  --color-dust:      #C4A882;
+  --color-sepia:     #704214;
+  --color-parchment: #F4E4C1;
+  --color-rust:      #8B3A1A;
+  --color-gunmetal:  #2C3333;
+  --color-amber:     #D4A017;
+  --color-ash:       #E8E0D0;
+  --color-charcoal:  #1C1917;
+}
+
+/* ─── Reset & Base ───────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  min-height: 100%;
+  background-color: var(--color-charcoal);
+  color: var(--color-ash);
+  font-family: "Courier New", Courier, monospace;
+
+  /* Film grain dokusu — SVG base64 */
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse at top, #2C3333 0%, #1C1917 100%);
+}
+
+/* ─── Seçim rengi ────────────────────────────────────────── */
+::selection {
+  background-color: var(--color-amber);
+  color: var(--color-charcoal);
+}
+
+/* ─── Scrollbar — Western sadeliği ──────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-charcoal);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-sepia);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-dust);
+}
+
+/* ─── Polaroid Çerçeve ───────────────────────────────────── */
+.polaroid {
+  background: linear-gradient(145deg, #E8E0D0 0%, #D4C9B0 100%);
+  padding: 1rem 1rem 2.5rem 1rem;
+  box-shadow:
+    0 4px 6px -1px rgba(28,25,23,0.5),
+    0 2px 4px -2px rgba(28,25,23,0.4),
+    inset 0 1px 0 rgba(255,255,255,0.15);
+}
+
+/* ─── Daktilo yazı efekti ────────────────────────────────── */
+.typewriter {
+  overflow: hidden;
+  white-space: pre-wrap;
+  border-right: 2px solid var(--color-amber);
+  animation: cursor-blink 0.8s step-end infinite;
+}
+
+@keyframes cursor-blink {
+  0%, 100% { border-color: var(--color-amber); }
+  50%       { border-color: transparent; }
+}
+
+/* ─── Lamba titremesi ────────────────────────────────────── */
+.flicker {
+  animation: flicker 4s infinite;
+}
+
+@keyframes flicker {
+  0%, 89%, 91%, 93%, 95%, 100% { opacity: 1; }
+  90%  { opacity: 0.75; }
+  92%  { opacity: 0.9; }
+  94%  { opacity: 0.6; }
+}
+
+/* ─── Amber ışık parıltısı ───────────────────────────────── */
+.amber-glow {
+  box-shadow:
+    0 0 20px rgba(212,160,23,0.25),
+    0 0 40px rgba(212,160,23,0.08);
+}
+
+/* ─── Eşik reddedildiğinde kapı titremesi ────────────────── */
+@keyframes door-shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-4px); }
+  40%       { transform: translateX(4px); }
+  60%       { transform: translateX(-3px); }
+  80%       { transform: translateX(3px); }
+}
+
+.door-shake {
+  animation: door-shake 0.5s ease-in-out;
+}
+
+/* ─── TypewriterText cursor yanıp sönmesi ───────────────── */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* ─── Toz yükselmesi — mesaj girişi ─────────────────────── */
+@keyframes dust-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.dust-rise {
+  animation: dust-rise 0.4s ease-out forwards;
+}
