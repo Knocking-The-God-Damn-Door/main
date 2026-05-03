@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, KeyboardEvent } from "react";
+import { playKnockSound } from "@/lib/sounds";
 
 interface InputAreaProps {
   onSend: (text: string) => void;
@@ -19,6 +20,7 @@ export function InputArea({ onSend, disabled, isGone, knockCount }: InputAreaPro
 
   const submit = () => {
     if (value.trim() && !disabled) {
+      playKnockSound();   // anında kapıya vur
       onSend(value.trim());
       setValue("");
     }
