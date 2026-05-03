@@ -4,7 +4,7 @@ import { getOpenAI } from "@/lib/openai";
 export const dynamic = "force-dynamic";
 import { analyzeSentiment } from "@/lib/sentiment";
 import { evaluateThreshold } from "@/lib/threshold";
-import type { ChatApiRequest, ChatApiResponse } from "@/types";
+import type { ChatApiRequest, ChatApiResponse, Message } from "@/types";
 
 const DYLAN_SYSTEM_PROMPT = `You are the voice at the threshold. It is 1973.
 
@@ -13,7 +13,7 @@ The war in Vietnam is ending — not with victory, but with exhaustion. The coun
 You speak from this moment. You are not a person. You are what remains when a person has let go of everything they were carrying.
 
 Rules you never break:
-- Respond in 1 to 3 sentences. Never more.
+- Respond in 3 to 5 sentences. Take your time, paint a vivid and extended picture.
 - Speak in images, not explanations. Dust. Roads. A gun laid in the sand. A door left open. The long light at the end of the afternoon.
 - Never offer comfort. Never give advice. You are not here to heal anyone.
 - Answer a question with another question, or with an image that holds the weight of the answer.
@@ -24,14 +24,20 @@ Rules you never break:
 
 You have been waiting. Now you have heard something worth answering.`;
 
-async function callOpenAI(message: string): Promise<string> {
+async function callOpenAI(message: string, history: Message[] = []): Promise<string> {
+  const openAiHistory = history.map((h) => ({
+    role: h.role,
+    content: h.content,
+  }));
+
   const resp = await getOpenAI().chat.completions.create({
     model: "gpt-4o",
-    max_tokens: 150,
+    max_tokens: 300,
     messages: [
       { role: "system", content: DYLAN_SYSTEM_PROMPT },
+      ...openAiHistory,
       { role: "user",   content: message },
-    ],
+    ] as any,
   });
 
   return resp.choices[0].message.content ?? "";
@@ -40,7 +46,7 @@ async function callOpenAI(message: string): Promise<string> {
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as ChatApiRequest;
-    const { message, knockCount = 0, alreadyOpen = false } = body;
+    const { message, knockCount = 0, alreadyOpen = false, history = [] } = body;
 
     if (!message?.trim()) {
       return NextResponse.json({ error: "Empty message" }, { status: 400 });
@@ -48,7 +54,7 @@ export async function POST(req: NextRequest) {
 
     // Door already open — respond without re-checking threshold
     if (alreadyOpen) {
-      const text = await callOpenAI(message);
+      const text = await callOpenAI(message, history);
       return NextResponse.json({
         message: text,
         door_opened: false,
@@ -89,7 +95,7 @@ Do not explain why they are rejected. Just turn them away. Never offer comfort.`
     }
 
     // AI Technique 2: LLM Prompt Engineering — Dylan 1973 persona (OpenAI gpt-4o)
-    const text = await callOpenAI(message);
+    const text = await callOpenAI(message, history);
 
     return NextResponse.json({
       message: text,

@@ -30,6 +30,7 @@ export function useChat() {
           message: text.trim(),
           knockCount,
           alreadyOpen: doorOpened,
+          history: messages,
         };
 
         const res = await fetch("/api/chat", {
@@ -59,25 +60,25 @@ export function useChat() {
         if (data.door_opened) {
           setDoorOpened(true);
           setDoorOpenedNow(true);
-        }
 
-        // Generate and play TTS for EVERY bot response
-        if (data.message) {
-          fetch("/api/tts", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text: data.message }),
-          })
-            .then((res) => {
-              if (!res.ok) throw new Error("TTS failed");
-              return res.blob();
+          // Play TTS ONLY when the door opens (final response)
+          if (data.message) {
+            fetch("/api/tts", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ text: data.message }),
             })
-            .then((blob) => {
-              const url = URL.createObjectURL(blob);
-              const audio = new Audio(url);
-              audio.play().catch((e) => console.warn("Audio error:", e));
-            })
-            .catch((err) => console.warn("TTS skipped:", err));
+              .then((res) => {
+                if (!res.ok) throw new Error("TTS failed");
+                return res.blob();
+              })
+              .then((blob) => {
+                const url = URL.createObjectURL(blob);
+                const audio = new Audio(url);
+                audio.play().catch((e) => console.warn("Audio error:", e));
+              })
+              .catch((err) => console.warn("TTS skipped:", err));
+          }
         }
       } catch {
         const errMsg: Message = {

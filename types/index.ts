@@ -31,6 +31,7 @@ export interface ChatApiRequest {
   message: string;
   knockCount: number;
   alreadyOpen: boolean;
+  history?: Message[];
 }
 
 export interface ChatApiResponse {

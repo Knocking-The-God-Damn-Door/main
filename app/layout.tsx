@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   description:
     "1973. Bob Dylan bir kapı yazıyor. Kapı seni bekliyor. Ama her vuruş yeterli değil.",
   keywords: ["knock", "bob dylan", "1973", "threshold", "eşik", "ai", "chatbot"],
+  icons: {
+    icon: "/favicon.jpg",
+  },
 };
 
 export default function RootLayout({
