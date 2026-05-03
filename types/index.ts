@@ -18,6 +18,7 @@ export interface Message {
   isRejection?: boolean;
   isDoorOpening?: boolean;
   knockNumber?: number;   // hangi knock turuna ait
+  typewriterSpeed?: number;
   createdAt: Date;
 }
 

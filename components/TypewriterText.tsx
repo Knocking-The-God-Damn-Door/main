@@ -21,6 +21,7 @@ export function TypewriterText({
   onCompleteRef.current           = onComplete;
 
   useEffect(() => {
+    if (speed <= 0) return;
     setDisplayed("");
     setDone(false);
     let i = 0;

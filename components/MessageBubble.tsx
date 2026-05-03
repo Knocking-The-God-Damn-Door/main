@@ -21,7 +21,7 @@ export function MessageBubble({ message, isFading }: MessageBubbleProps) {
     >
       {message.isRejection ? (
         /* Red mesajı — ThresholdGate zaten knock etiketini içeriyor */
-        <ThresholdGate text={message.content} knockNumber={knockNumber} />
+        <ThresholdGate text={message.content} knockNumber={knockNumber} speed={message.typewriterSpeed ?? 0} />
       ) : isUser ? (
         /* Kullanıcı mesajı */
         <span
@@ -35,7 +35,7 @@ export function MessageBubble({ message, isFading }: MessageBubbleProps) {
         <div>
           <TypewriterText
             text={message.content}
-            speed={38}
+            speed={message.typewriterSpeed ?? 0}
             className="font-mono text-sm leading-relaxed"
           />
           {/* Knock etiketi — kapı açılış mesajında gösterme */}

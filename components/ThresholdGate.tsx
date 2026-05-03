@@ -1,33 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { TypewriterText } from "./TypewriterText";
 
 interface ThresholdGateProps {
   text: string;
-  knockNumber: number; // mesajın ait olduğu knock turu
+  knockNumber: number;
+  speed?: number;
 }
 
-export function ThresholdGate({ text, knockNumber }: ThresholdGateProps) {
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    setVisible(false);
-    const t = setTimeout(() => setVisible(true), 80);
-    return () => clearTimeout(t);
-  }, [text]);
-
+export function ThresholdGate({ text, knockNumber, speed = 0 }: ThresholdGateProps) {
   return (
-    <div
-      className={`transition-opacity duration-700 ${visible ? "opacity-100" : "opacity-0"}`}
-    >
+    <div>
       <p
         className="font-mono text-sm italic leading-relaxed"
         style={{ color: "var(--color-rust)", letterSpacing: "0.04em" }}
       >
-        {text}
+        <TypewriterText text={text} speed={speed} />
       </p>
 
-      {/* Knock numarası */}
       <p
         className="mt-1 font-mono text-xs"
         style={{ color: "var(--color-dust)", opacity: 0.3, letterSpacing: "0.18em" }}

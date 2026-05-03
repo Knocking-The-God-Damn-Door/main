@@ -61,6 +61,7 @@ export function useChat() {
           isRejection: data.is_rejection,
           isDoorOpening: data.door_opened,
           knockNumber: knockCount + 1,
+          typewriterSpeed: 0,
           createdAt: new Date(),
         };
 
@@ -140,14 +141,38 @@ export function useChat() {
           const newScore = (data.sentiment_score ?? 0) * 100;
           setDoorOpenness((prev) => {
             if (data.is_rejection) {
-              // Punish shallow answers with a fixed penalty based on how hollow they were.
               if (newScore < 15) return Math.max(0, prev - 25);
               if (newScore < 35) return Math.max(0, prev - 12);
             }
-            // Meaningful but not yet enough — blend toward the new score.
             const blended = prev * 0.4 + newScore * 0.6;
             return Math.max(0, Math.min(85, blended));
           });
+          
+          if (data.message) {
+            fetch("/api/tts", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ text: data.message }),
+            })
+              .then((r) => { if (!r.ok) throw new Error("TTS failed"); return r.blob(); })
+              .then((blob) => {
+                const url   = URL.createObjectURL(blob);
+                const audio = new Audio(url);
+                currentAudioRef.current = audio;
+
+                audio.onloadedmetadata = () => {
+                  const speed = Math.max(20, (audio.duration * 1000 - 300) / data.message.length);
+                  setMessages((prev) => prev.map((m) => m.id === botMsg.id ? { ...m, typewriterSpeed: speed } : m));
+                  audio.play().catch((e) => console.warn("Audio error:", e));
+                };
+
+                audio.onended = () => { currentAudioRef.current = null; };
+              })
+              .catch((err) => {
+                console.warn("TTS skipped:", err);
+                setMessages((prev) => prev.map((m) => m.id === botMsg.id ? { ...m, typewriterSpeed: 38 } : m));
+              });
+          }
         }
 
       } catch {
