@@ -16,11 +16,12 @@ Step carefully. Speak truthfully.
 
 If you are testing the application and want to force the door to open, you cannot simply type "hello", "test", or "open the door". The NLP engine filters out shallow messages immediately, and the Rejection Engine will turn you away.
 
-To successfully pass the threshold, your input must meet the following criteria:
-1. **Length:** Be detailed enough (around 20-30 words).
-2. **Keywords:** Contain thematic "depth" keywords (e.g., *war, rain, jungle, ghost, alone, pain, shadow, blood, hell, meaning, soul*).
-3. **Inquiry:** Include a question to indicate genuine depth (*Why, How, What, ?*).
-4. **Sentiment:** Carry a heavy, somber, or dark emotional tone.
+To successfully pass the threshold, your conversation must meet **all** of the following criteria:
+1. **Persistence:** Send at least **3 messages** — the door will not open on a single attempt.
+2. **Length:** Each message should be detailed enough (around 30+ words).
+3. **Keywords:** Accumulate at least **6 thematic keyword hits** across the conversation (e.g., *war, rain, jungle, ghost, alone, pain, shadow, blood, hell, meaning, soul*).
+4. **Inquiry:** Include a question to indicate genuine depth (*Why, How, What, ?*).
+5. **Sentiment:** Carry a heavy, somber, or dark emotional tone that scores above the threshold.
 
 **Example Phrase to Copy & Paste:**
 > *"Why did we leave them alone in the dark jungle? The cold rain and mud still carry the heavy weight of broken soldiers, and I cannot forget the pain. Do you remember the heavy silence that followed the war?"*
@@ -35,7 +36,7 @@ Beneath the narrative surface, KNOCK operates as a highly orchestrated pipeline 
 Before the persona even "hears" you, your words are weighed. The system employs a dual-layered sentiment engine:
 - **HuggingFace Machine Learning:** A `twitter-roberta-base-sentiment` model analyzes the emotional weight of your input.
 - **Algorithmic Depth Scoring:** A custom Natural Language Processing (NLP) layer scans for "shallow patterns" (e.g., 'hi', 'test', 'lol') and immediately penalizes them, while rewarding thematic "depth keywords" (e.g., *dust, time, heaven, silence*) and interrogative complexity in both English and Turkish.
-Only a combined score that crosses a strict mathematical threshold (`0.4`) allows the conversation to truly begin.
+Only a combined score that crosses a strict mathematical threshold (`0.55`) — along with a minimum of 3 prior messages and 6 accumulated depth-keyword hits — allows the door to open.
 
 ### 2. The Dynamic Rejection Engine (OpenAI GPT-4o)
 If your input is deemed too shallow, the system routes the request to a dedicated Rejection Engine. Instead of a static "error" message, GPT-4o is prompted to generate a unique, poetic rejection based *specifically* on what you just said. It turns you away with imagery of closed doors, blowing sand, and weary refusal—maintaining the illusion without breaking character.
