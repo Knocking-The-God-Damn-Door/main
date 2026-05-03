@@ -4,8 +4,7 @@
 
 **KNOCK** is an immersive, AI-driven narrative experience masquerading as a chat interface. You stand before a metaphorical door. On the other side is a weary voice from 1973—a sheriff holding the keys to the threshold. 
 
-🔗 **[Try the Live Demo Here](https://your-project-name.vercel.app)**  
-*(Replace the link above with your Vercel URL once deployed. No custom domain required, Vercel provides a free `.vercel.app` domain automatically.)*
+🔗 **[Try the Live Demo Here](https://main-lnaqplbpg-furkan0907s-projects.vercel.app)**  
 
 This isn't a traditional chatbot. It is a sentiment-driven gatekeeper. The conversation remembers your history, weighs the weight of your words, and judges your intent. Only when the hidden threshold of sentiment is reached will the door open, culminating in a cinematic finale featuring ambient audio and a dynamically generated voice performance.
 
