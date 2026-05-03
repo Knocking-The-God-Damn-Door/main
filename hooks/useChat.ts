@@ -93,7 +93,19 @@ export function useChat() {
           setDoorOpenness(100);
           setDoorOpened(true);
           setDoorOpenedNow(true);
-          if (data.message) setTimeout(() => playTTS(data.message), 2500);
+          if (data.message) {
+            let ttsText = data.message;
+            if (ttsText.length > 250) {
+              const sub = ttsText.substring(0, 250);
+              const lastPunctuation = Math.max(sub.lastIndexOf('.'), sub.lastIndexOf('!'), sub.lastIndexOf('?'));
+              if (lastPunctuation > 0) {
+                ttsText = sub.substring(0, lastPunctuation + 1);
+              } else {
+                ttsText = sub;
+              }
+            }
+            setTimeout(() => playTTS(ttsText), 2500);
+          }
         } else {
           const newScore = (data.sentiment_score ?? 0) * 100;
           setDoorOpenness((prev) => {
