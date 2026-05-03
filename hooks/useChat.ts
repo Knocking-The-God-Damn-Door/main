@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import type { Message, ChatApiRequest, ChatApiResponse } from "@/types";
 
 export function useChat() {
@@ -11,10 +11,19 @@ export function useChat() {
   const [knockCount,    setKnockCount]    = useState(0);
   // 0-100 arası kapı açıklığı — doğrudan sentiment score'dan türetiliyor
   const [doorOpenness,  setDoorOpenness]  = useState(0);
+  // Şu an çalan TTS Audio nesnesi — yeni mesajda durdurulur
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const sendMessage = useCallback(
     async (text: string) => {
       if (!text.trim() || isLoading || doorOpened) return;
+
+      // Yeni mesaj gönderilince önceki TTS'i anında kes
+      if (currentAudioRef.current) {
+        currentAudioRef.current.pause();
+        currentAudioRef.current.src = "";
+        currentAudioRef.current = null;
+      }
 
       const userMsg: Message = {
         id: crypto.randomUUID(),
@@ -55,8 +64,39 @@ export function useChat() {
 
         setMessages((prev) => [...prev, botMsg]);
 
+        // ── TTS yardımcısı — önceki sesi durdurur, yenisini çalar ──
+        const playTTS = (text: string) => {
+          // Önceki ses çalıyorsa durdur
+          if (currentAudioRef.current) {
+            currentAudioRef.current.pause();
+            currentAudioRef.current.src = "";
+            currentAudioRef.current = null;
+          }
+
+          fetch("/api/tts", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text }),
+          })
+            .then((res) => {
+              if (!res.ok) throw new Error("TTS failed");
+              return res.blob();
+            })
+            .then((blob) => {
+              const url   = URL.createObjectURL(blob);
+              const audio = new Audio(url);
+              currentAudioRef.current = audio;
+              audio.play().catch((e) => console.warn("Audio error:", e));
+              // Bitince ref'i temizle
+              audio.onended = () => { currentAudioRef.current = null; };
+            })
+            .catch((err) => console.warn("TTS skipped:", err));
+        };
+
         if (data.is_rejection) {
           setKnockCount((c) => c + 1);
+          // Rejection metni de ElevenLabs ile seslendirilir
+          if (data.message) playTTS(data.message);
         }
 
         if (data.door_opened) {
@@ -64,34 +104,16 @@ export function useChat() {
           setDoorOpenness(100);
           setDoorOpened(true);
           setDoorOpenedNow(true);
-
-          if (data.message) {
-            fetch("/api/tts", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ text: data.message }),
-            })
-              .then((res) => {
-                if (!res.ok) throw new Error("TTS failed");
-                return res.blob();
-              })
-              .then((blob) => {
-                const url = URL.createObjectURL(blob);
-                const audio = new Audio(url);
-                audio.play().catch((e) => console.warn("Audio error:", e));
-              })
-              .catch((err) => console.warn("TTS skipped:", err));
-          }
+          if (data.message) playTTS(data.message);
         } else {
           // Kapı açılmadı: anlam yüküne göre kapı açıklığını ayarla
-          // Formül: %40 önceki + %60 yeni score — derin mesaj kapıyı açar, sığ mesaj kapatır
           const newScore = (data.sentiment_score ?? 0) * 100;
           setDoorOpenness((prev) => {
             const blended = prev * 0.4 + newScore * 0.6;
-            // Kapı tamamen açılmadan max %85'te tut
             return Math.max(0, Math.min(85, blended));
           });
         }
+
       } catch {
         const errMsg: Message = {
           id: crypto.randomUUID(),
