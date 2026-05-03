@@ -9,6 +9,8 @@ export function useChat() {
   const [doorOpened,    setDoorOpened]    = useState(false);
   const [doorOpenedNow, setDoorOpenedNow] = useState(false);
   const [knockCount,    setKnockCount]    = useState(0);
+  // 0-100 arası kapı açıklığı — doğrudan sentiment score'dan türetiliyor
+  const [doorOpenness,  setDoorOpenness]  = useState(0);
 
   const sendMessage = useCallback(
     async (text: string) => {
@@ -58,10 +60,11 @@ export function useChat() {
         }
 
         if (data.door_opened) {
+          // Kapı tamamen açıldı
+          setDoorOpenness(100);
           setDoorOpened(true);
           setDoorOpenedNow(true);
 
-          // Play TTS ONLY when the door opens (final response)
           if (data.message) {
             fetch("/api/tts", {
               method: "POST",
@@ -79,6 +82,15 @@ export function useChat() {
               })
               .catch((err) => console.warn("TTS skipped:", err));
           }
+        } else {
+          // Kapı açılmadı: anlam yüküne göre kapı açıklığını ayarla
+          // Formül: %40 önceki + %60 yeni score — derin mesaj kapıyı açar, sığ mesaj kapatır
+          const newScore = (data.sentiment_score ?? 0) * 100;
+          setDoorOpenness((prev) => {
+            const blended = prev * 0.4 + newScore * 0.6;
+            // Kapı tamamen açılmadan max %85'te tut
+            return Math.max(0, Math.min(85, blended));
+          });
         }
       } catch {
         const errMsg: Message = {
@@ -93,8 +105,8 @@ export function useChat() {
         setIsLoading(false);
       }
     },
-    [isLoading, doorOpened, knockCount]
+    [isLoading, doorOpened, knockCount, messages]
   );
 
-  return { messages, isLoading, doorOpened, doorOpenedNow, knockCount, sendMessage };
+  return { messages, isLoading, doorOpened, doorOpenedNow, knockCount, doorOpenness, sendMessage };
 }
