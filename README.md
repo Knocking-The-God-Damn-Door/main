@@ -43,13 +43,15 @@ If your input is deemed too shallow, the system routes the request to a dedicate
 ### 3. The 1973 Persona (OpenAI GPT-4o + History State)
 Once the threshold is passed, the true narrative engine unlocks. Powered by GPT-4o and heavily guided by a meticulously crafted system prompt, the AI embodies a weary, battle-scarred persona from 1973. It is history-aware, maintaining the context of your entire conversation. It follows strict behavioral rules: it speaks in vivid imagery, answers questions with heavier questions, and never offers comfort.
 
-### 4. The Cinematic Finale (ElevenLabs TTS & Perfect Sync)
-When the final threshold is crossed and the door opens, the experience transcends text. The backend triggers the ElevenLabs API to dynamically generate a voice performance for the persona's final monologue (strictly limited to 300-350 characters to prevent clipping). 
+### 4. Voice Performance & Typewriter Sync (ElevenLabs TTS)
+Every response in the conversation — rejection, progress, and finale — is voiced in real time by ElevenLabs using the same Bill persona (a weary 1970s sheriff voice). For each message, the system:
+1. Fetches the audio blob from ElevenLabs in the background while the UI waits.
+2. Reads the exact audio duration from the loaded metadata.
+3. Calculates the typewriter character speed as `(duration_ms − 300ms) / character_count`, then starts the voice and the typewriter at the **exact same millisecond** — so the last character lands just as the voice goes silent.
 
-To maximize the cinematic impact, the UI implements a precise synchronization sequence:
-1. Ambient background music begins immediately as the chat interface slowly fades into darkness.
-2. The system waits exactly **2.5 seconds** in silence while fetching the audio.
-3. The generated voice performance and a large, yellow typewriter text begin playing at the exact same millisecond. The typing speed dynamically adjusts based on the length of the audio file to ensure the final word is typed exactly as the voice finishes speaking.
+If the primary ElevenLabs API key hits its quota or returns an error, the system automatically retries with a secondary fallback key (`ELEVENLABS_API_KEY_2`) without any interruption to the experience. If both keys fail, the typewriter falls back to a default speed so the narrative never breaks.
+
+**The Cinematic Finale** adds one more layer on top of this: when the door finally opens, ambient background music begins as the chat fades to black, a **2.5-second silence** builds tension, and then the final monologue voice and typewriter begin together — the typing speed again locked to the audio duration for a frame-perfect ending.
 
 ---
 
@@ -75,6 +77,7 @@ Create a file named `.env.local` in the root directory of the project. Add your 
 OPENAI_API_KEY=your_openai_api_key_here
 HUGGINGFACE_API_TOKEN=your_huggingface_api_token_here
 ELEVENLABS_API_KEY=your_elevenlabs_api_key_here
+ELEVENLABS_API_KEY_2=your_second_elevenlabs_key_here   # optional — used as automatic fallback if the primary key fails or hits quota
 ```
 
 ### 4. Run the Development Server
