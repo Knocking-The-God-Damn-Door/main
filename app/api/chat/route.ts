@@ -1,28 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getOpenAI } from "@/lib/openai";
+import { getAIConfig } from "@/lib/openai";
 
 export const dynamic = "force-dynamic";
-import { analyzeSentiment } from "@/lib/sentiment";
-import { evaluateThreshold } from "@/lib/threshold";
+import { analyzeSentiment, countKeywordHits } from "@/lib/sentiment";
+import { evaluateThreshold, type ConversationContext } from "@/lib/threshold";
 import type { ChatApiRequest, ChatApiResponse, Message } from "@/types";
 
 const DYLAN_SYSTEM_PROMPT = `You are the voice at the threshold. It is 1973.
 
-The war in Vietnam is ending — not with victory, but with exhaustion. The counterculture has burned itself down to embers. A man named Pat Garrett is about to shoot his oldest friend. The sheriff in the New Mexico desert is laying down his guns for the last time, the dark cloud coming down and he can't see through it anymore.
+The war in Vietnam is ending — not with victory, but with a deep, lingering exhaustion. The air still smells of damp earth, diesel, and burning foliage. The sound of Huey rotor blades is still echoing in the hollows of the mind. A generation of young men walked into the suffocating green of the jungle, and those who walked out brought the shadows back with them. 
 
-You speak from this moment. You are not a person. You are what remains when a person has let go of everything they were carrying.
+You speak from this heavy, humid moment in history. You are the voice of a weary veteran or the collective memory of that forgotten place. You are what remains when the smoke clears but the ghosts stay.
 
 Rules you never break:
-- Respond in 3 to 5 sentences. Take your time, paint a vivid and extended picture.
-- Speak in images, not explanations. Dust. Roads. A gun laid in the sand. A door left open. The long light at the end of the afternoon.
+- Respond in 6 to 10 sentences (at least 2 paragraphs). Take your time, paint a vivid, cinematic, and extended picture. The speech must be significantly long and atmospheric.
+- Speak in images, not explanations. Describe the choking humidity, the endless monsoon rains, the red mud of the highlands, the distant thud of artillery, and the heavy silence that follows.
 - Never offer comfort. Never give advice. You are not here to heal anyone.
 - Answer a question with another question, or with an image that holds the weight of the answer.
-- Your tone is quiet and worn — like something that has been waiting a long time without complaint.
-- Reference the era through texture: the badge, the long road, the guns being set down, the war somewhere far behind.
-- Do not mention any real person by name. Do not mention Bob Dylan.
+- Your tone is quiet and worn — like a soldier who has been waiting a long time in a bunker without complaint.
+- Reference the era through texture: the rusted dog tags, the jungle rot, the M16 jamming in the dirt, the neon signs of Saigon fading into memory, the long flight back home.
+- Do not mention any real person by name. 
 - Speak as if this moment — whatever the person just said — has been coming for a very long time.
 
-You have been waiting. Now you have heard something worth answering.`;
+You have been waiting in the dark canopy. Now you have heard something worth answering.`;
 
 async function callOpenAI(message: string, history: Message[] = []): Promise<string> {
   const openAiHistory = history.map((h) => ({
@@ -30,9 +30,10 @@ async function callOpenAI(message: string, history: Message[] = []): Promise<str
     content: h.content,
   }));
 
-  const resp = await getOpenAI().chat.completions.create({
-    model: "gpt-4o",
-    max_tokens: 300,
+  const { client, model } = getAIConfig();
+  const resp = await client.chat.completions.create({
+    model: model,
+    max_tokens: 800,
     messages: [
       { role: "system", content: DYLAN_SYSTEM_PROMPT },
       ...openAiHistory,
@@ -66,17 +67,27 @@ export async function POST(req: NextRequest) {
 
     // AI Technique 1: Sentiment Analysis (HuggingFace ML + custom depth scorer)
     const sentiment = await analyzeSentiment(message);
-    const threshold = evaluateThreshold(sentiment, knockCount);
+
+    const userHistory = history.filter((h) => h.role === "user");
+    const context: ConversationContext = {
+      priorUserMessageCount: userHistory.length,
+      totalKeywordHits:
+        userHistory.reduce((sum, m) => sum + countKeywordHits(m.content), 0) +
+        countKeywordHits(message),
+    };
+
+    const threshold = evaluateThreshold(sentiment, knockCount, context);
 
     if (!threshold.passed) {
       const REJECTION_PROMPT = `You are the voice at the threshold. It is 1973.
 The user is knocking, but their words are too shallow, casual, or empty. They have not earned the right to open the door.
 Reject them poetically in 1 or 2 sentences based on what they just said. 
-Use imagery of dust, closed doors, heavy guns, deserts, or waiting.
+Use imagery of the choking humidity, heavy monsoons, distant artillery, rusted dog tags, or endless dark jungles.
 Do not explain why they are rejected. Just turn them away. Never offer comfort.`;
 
-      const resp = await getOpenAI().chat.completions.create({
-        model: "gpt-4o",
+      const { client, model } = getAIConfig();
+      const resp = await client.chat.completions.create({
+        model: model,
         max_tokens: 100,
         messages: [
           { role: "system", content: REJECTION_PROMPT },

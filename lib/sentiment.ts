@@ -1,6 +1,6 @@
 import type { SentimentResult } from "@/types";
 
-const THRESHOLD_MIN = 0.4;
+const THRESHOLD_MIN = 0.75;
 
 const DEPTH_KEYWORDS = [
   // English
@@ -10,12 +10,19 @@ const DEPTH_KEYWORDS = [
   "war", "peace", "dust", "shadow", "light", "dark", "silence",
   "cry", "hurt", "hope", "dream", "broken", "carry", "weight", "empty", "miss",
   "badge", "gun", "road", "river", "sunset", "desert", "cold", "wound",
+  // Vietnam War Theme (English)
+  "jungle", "rain", "monsoon", "mud", "chopper", "blood", "rifle", "soldier",
+  "vietnam", "veteran", "hell", "desolate", "trauma", "ghost", "bunker",
+
   // Turkish
   "neden", "anlam", "ölüm", "yaşam", "ruh", "kayıp", "korku", "elveda",
   "son", "başlangıç", "kapı", "cennet", "affet", "hatırla", "unut",
   "acı", "aşk", "yalnız", "zaman", "savaş", "barış", "toz", "gölge",
   "ışık", "karanlık", "sessizlik", "ağla", "kır", "taşı", "ağırlık",
   "boş", "özle", "bırak", "geride", "geç", "köprü", "yol",
+  // Vietnam War Theme (Turkish)
+  "orman", "yağmur", "muson", "çamur", "helikopter", "kan", "tüfek", "asker",
+  "vietnam", "gazi", "cehennem", "ıssız", "travma", "hayalet", "sığınak", "siper"
 ];
 
 const SHALLOW_PATTERNS = [
@@ -23,7 +30,13 @@ const SHALLOW_PATTERNS = [
   /^\d+$/,
   /^[!?.,\s]+$/,
   /^(lol|haha|hmm|umm|uh|hm|ah)[\s!?.]*$/i,
+  /^(lütfen|aç|hadi|please|open)[\s!?.]*$/i,
 ];
+
+export function countKeywordHits(text: string): number {
+  const words = text.toLowerCase().split(/\s+/);
+  return words.filter((w) => DEPTH_KEYWORDS.some((k) => w.includes(k))).length;
+}
 
 async function fetchHuggingFaceSentiment(text: string): Promise<number | null> {
   try {
@@ -49,10 +62,12 @@ async function fetchHuggingFaceSentiment(text: string): Promise<number | null> {
     if (!Array.isArray(data) || !Array.isArray(data[0])) return null;
 
     const results = data[0] as { label: string; score: number }[];
+    const negative = results.find((r) => r.label.toLowerCase() === "negative")?.score ?? 0;
     const positive = results.find((r) => r.label.toLowerCase() === "positive")?.score ?? 0;
     const neutral  = results.find((r) => r.label.toLowerCase() === "neutral")?.score ?? 0;
-    // Positive + neutral indicate non-trivial emotional engagement
-    return positive * 0.5 + neutral * 0.5;
+
+    // Weight emotional (negative-leaning) messages higher; penalise flat/neutral responses.
+    return (negative * 0.6) + (positive * 0.3) + (neutral * 0.1);
   } catch {
     return null;
   }
@@ -68,25 +83,20 @@ function scoreDepth(message: string): number {
   const words = trimmed.toLowerCase().split(/\s+/);
   let score = 0;
 
-  // Length factor: reaches max at 20 words (0.3)
-  score += Math.min(words.length / 20, 1) * 0.3;
+  // Length factor: reaches maximum contribution at 30 words.
+  score += Math.min(words.length / 30, 1) * 0.35;
 
-  // Depth keyword matches: reaches max at 3 hits (0.4)
-  const hits = words.filter((w) =>
-    DEPTH_KEYWORDS.some((k) => w.includes(k))
-  ).length;
-  score += Math.min(hits / 3, 1) * 0.4;
+  // Depth keyword matches: reaches maximum contribution at 5 hits.
+  const hits = countKeywordHits(trimmed);
+  score += Math.min(hits / 5, 1) * 0.45;
 
-  // Contains a genuine question (0.2)
+  // Genuine question adds 0.2.
   if (
     /[?]/.test(trimmed) ||
     /\b(why|what|how|who|neden|nasıl|kim|ne zaman)\b/i.test(trimmed)
   ) {
     score += 0.2;
   }
-
-  // Lowercase sincerity signal: not shouting (0.1)
-  if (trimmed === trimmed.toLowerCase()) score += 0.1;
 
   return Math.min(score, 1);
 }
@@ -99,11 +109,12 @@ export async function analyzeSentiment(message: string): Promise<SentimentResult
 
   const score =
     hfScore !== null
-      ? depthScore * 0.5 + hfScore * 0.5
+      ? depthScore * 0.7 + hfScore * 0.3 // ZORLAŞTIRILDI: Derinlik (uzunluk/kelime) çok daha önemli
       : depthScore;
 
   const label: SentimentResult["label"] =
-    score < 0.2 ? "shallow" : score < THRESHOLD_MIN ? "seeking" : "sincere";
+    score < 0.3 ? "shallow" : score < THRESHOLD_MIN ? "seeking" : "sincere";
 
   return { score, label, passed: score >= THRESHOLD_MIN };
 }
+
