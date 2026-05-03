@@ -9,8 +9,9 @@ export function useChat() {
   const [doorOpened,    setDoorOpened]    = useState(false);
   const [doorOpenedNow, setDoorOpenedNow] = useState(false);
   const [knockCount,    setKnockCount]    = useState(0);
-  // Door openness 0–100, derived from the running sentiment score.
   const [doorOpenness,  setDoorOpenness]  = useState(0);
+  const [audioStarted,  setAudioStarted]  = useState(false);
+  const [audioDuration, setAudioDuration] = useState(0);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const sendMessage = useCallback(
@@ -96,17 +97,44 @@ export function useChat() {
           setDoorOpened(true);
           setDoorOpenedNow(true);
           if (data.message) {
-            let ttsText = data.message;
-            if (ttsText.length > 250) {
-              const sub = ttsText.substring(0, 250);
-              const lastPunctuation = Math.max(sub.lastIndexOf('.'), sub.lastIndexOf('!'), sub.lastIndexOf('?'));
-              if (lastPunctuation > 0) {
-                ttsText = sub.substring(0, lastPunctuation + 1);
-              } else {
-                ttsText = sub;
-              }
-            }
-            setTimeout(() => playTTS(ttsText), 2500);
+            const doorOpenTime = Date.now();
+            
+            // Start fetching TTS immediately in the background
+            fetch("/api/tts", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ text: data.message }),
+            })
+              .then((r) => { if (!r.ok) throw new Error("TTS failed"); return r.blob(); })
+              .then((blob) => {
+                const url   = URL.createObjectURL(blob);
+                const audio = new Audio(url);
+                currentAudioRef.current = audio;
+                
+                audio.onloadedmetadata = () => {
+                  setAudioDuration(audio.duration * 1000);
+                };
+                
+                // Wait until at least 2500ms have passed since the door opened
+                const elapsed = Date.now() - doorOpenTime;
+                const delay = Math.max(0, 2500 - elapsed);
+                
+                setTimeout(() => {
+                  audio.play().catch((e) => console.warn("Audio error:", e));
+                  setAudioStarted(true);
+                }, delay);
+                
+                audio.onended = () => { currentAudioRef.current = null; };
+              })
+              .catch((err) => {
+                console.warn("TTS skipped:", err);
+                // Fallback: still trigger the UI transition after 2.5s even if audio fails
+                const elapsed = Date.now() - doorOpenTime;
+                const delay = Math.max(0, 2500 - elapsed);
+                setTimeout(() => {
+                  setAudioStarted(true);
+                }, delay);
+              });
           }
         } else {
           const newScore = (data.sentiment_score ?? 0) * 100;
@@ -138,5 +166,5 @@ export function useChat() {
     [isLoading, doorOpened, knockCount, messages]
   );
 
-  return { messages, isLoading, doorOpened, doorOpenedNow, knockCount, doorOpenness, sendMessage };
+  return { messages, isLoading, doorOpened, doorOpenedNow, knockCount, doorOpenness, sendMessage, audioStarted, audioDuration };
 }

@@ -23,7 +23,9 @@ export function ChatWindow({
 
   return (
     <div className="flex-1 py-4">
-      {messages.map((msg) => (
+      {messages
+        .filter((msg) => !msg.isDoorOpening)
+        .map((msg) => (
         <MessageBubble
           key={msg.id}
           message={msg}

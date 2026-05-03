@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
     }
 
     // "pqHfZKP75CvOlQylNhV4" is Bill - a strong, narrative old man voice (like a 1970s sheriff)
-    const voiceId = "pqHfZKP75CvOlQylNhV4"; 
+    const voiceId = "pqHfZKP75CvOlQylNhV4";
     const apiKey = process.env.ELEVENLABS_API_KEY;
 
     if (!apiKey) {
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
         voice_settings: {
           stability: 0.45,
           similarity_boost: 0.75,
-          speed: 0.85,
+          speed: 0.92,
         },
       }),
     });

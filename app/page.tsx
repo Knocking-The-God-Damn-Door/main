@@ -10,7 +10,7 @@ import { useAudio }       from "@/hooks/useAudio";
 import type { ScreenState } from "@/types";
 
 export default function Home() {
-  const { messages, isLoading, doorOpened, doorOpenedNow, knockCount, doorOpenness, sendMessage } =
+  const { messages, isLoading, doorOpened, doorOpenedNow, knockCount, doorOpenness, sendMessage, audioStarted, audioDuration } =
     useChat();
   const { play }                          = useAudio("/placeholder_ambient.mp3");
   const [screenState, setScreenState]     = useState<ScreenState>("chatting");
@@ -20,10 +20,22 @@ export default function Home() {
   useEffect(() => {
     if (!doorOpenedNow) return;
     play();
-    setScreenState("final");
+    setScreenState("transitioning");
   }, [doorOpenedNow, play, finalMessage]);
 
+  useEffect(() => {
+    if (doorOpenedNow && audioStarted) {
+      setScreenState("final");
+    }
+  }, [doorOpenedNow, audioStarted]);
+
   const isFading = screenState === "transitioning";
+
+  // Calculate perfect typing speed to match audio duration
+  // Slight offset (-500ms) so text doesn't finish exactly as audio ends, but slightly before to feel natural
+  const typeSpeed = (audioDuration > 0 && finalMessage) 
+    ? Math.max(10, (audioDuration - 500) / finalMessage.content.length) 
+    : 45;
 
   return (
     <div
@@ -100,7 +112,7 @@ export default function Home() {
             >
               <TypewriterText
                 text={finalMessage.content}
-                speed={45}
+                speed={typeSpeed}
                 className="font-mono text-base leading-loose"
               />
             </p>

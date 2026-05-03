@@ -4,9 +4,27 @@
 
 **KNOCK** is an immersive, AI-driven narrative experience masquerading as a chat interface. You stand before a metaphorical door. On the other side is a weary voice from 1973—a sheriff holding the keys to the threshold. 
 
+🔗 **[Try the Live Demo Here](https://your-project-name.vercel.app)**  
+*(Replace the link above with your Vercel URL once deployed. No custom domain required, Vercel provides a free `.vercel.app` domain automatically.)*
+
 This isn't a traditional chatbot. It is a sentiment-driven gatekeeper. The conversation remembers your history, weighs the weight of your words, and judges your intent. Only when the hidden threshold of sentiment is reached will the door open, culminating in a cinematic finale featuring ambient audio and a dynamically generated voice performance.
 
 Step carefully. Speak truthfully. 
+
+---
+
+## How to Pass the Threshold (For Testers)
+
+If you are testing the application and want to force the door to open, you cannot simply type "hello", "test", or "open the door". The NLP engine filters out shallow messages immediately, and the Rejection Engine will turn you away.
+
+To successfully pass the threshold, your input must meet the following criteria:
+1. **Length:** Be detailed enough (around 20-30 words).
+2. **Keywords:** Contain thematic "depth" keywords (e.g., *war, rain, jungle, ghost, alone, pain, shadow, blood, hell, meaning, soul*).
+3. **Inquiry:** Include a question to indicate genuine depth (*Why, How, What, ?*).
+4. **Sentiment:** Carry a heavy, somber, or dark emotional tone.
+
+**Example Phrase to Copy & Paste:**
+> *"Why did we leave them alone in the dark jungle? The cold rain and mud still carry the heavy weight of broken soldiers, and I cannot forget the pain. Do you remember the heavy silence that followed the war?"*
 
 ---
 
@@ -26,8 +44,13 @@ If your input is deemed too shallow, the system routes the request to a dedicate
 ### 3. The 1973 Persona (OpenAI GPT-4o + History State)
 Once the threshold is passed, the true narrative engine unlocks. Powered by GPT-4o and heavily guided by a meticulously crafted system prompt, the AI embodies a weary, battle-scarred persona from 1973. It is history-aware, maintaining the context of your entire conversation. It follows strict behavioral rules: it speaks in vivid imagery, answers questions with heavier questions, and never offers comfort.
 
-### 4. The Cinematic Finale (ElevenLabs TTS)
-When the final threshold is crossed and the door opens, the experience transcends text. The backend seamlessly triggers the ElevenLabs API, dynamically generating a voice performance for the persona's final monologue. Paired with ambient background audio, this transforms a chat interface into a cinematic, auditory conclusion.
+### 4. The Cinematic Finale (ElevenLabs TTS & Perfect Sync)
+When the final threshold is crossed and the door opens, the experience transcends text. The backend triggers the ElevenLabs API to dynamically generate a voice performance for the persona's final monologue (strictly limited to 300-350 characters to prevent clipping). 
+
+To maximize the cinematic impact, the UI implements a precise synchronization sequence:
+1. Ambient background music begins immediately as the chat interface slowly fades into darkness.
+2. The system waits exactly **2.5 seconds** in silence while fetching the audio.
+3. The generated voice performance and a large, yellow typewriter text begin playing at the exact same millisecond. The typing speed dynamically adjusts based on the length of the audio file to ensure the final word is typed exactly as the voice finishes speaking.
 
 ---
 
