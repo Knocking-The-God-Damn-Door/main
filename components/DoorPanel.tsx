@@ -8,7 +8,7 @@ interface DoorPanelProps {
   doorOpenness: number; // 0-100
 }
 
-/* ── Ses efektleri ──────────────────────────────────────── */
+/* ── Sound effects ──────────────────────────────────────── */
 function playCreakSound(intensity: number = 0.5) {
   try {
     const ctx  = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -93,7 +93,7 @@ function playFullOpenCreak() {
   } catch (_) {}
 }
 
-/* ── Bileşen ────────────────────────────────────────────── */
+/* ── Component ──────────────────────────────────────────── */
 export function DoorPanel({ knockCount, doorOpened, doorOpenness }: DoorPanelProps) {
   const prevOpennessRef = useRef(0);
   const prevOpenedRef   = useRef(false);
@@ -124,11 +124,10 @@ export function DoorPanel({ knockCount, doorOpened, doorOpenness }: DoorPanelPro
 
   const openPercent = doorOpened ? 100 : doorOpenness;
 
-  // Kapı sağ kenarından (menteşe) dönerek sola açılıyor
-  // 0% → 0°  |  100% → -78°
+  // Door rotates open from its right edge (hinge). 0% → 0° | 100% → -78°
   const rotateY = -(openPercent * 0.78);
 
-  // İçeriden süzülen ışık opaklığı
+  // Opacity of the light leaking through the gap.
   const glowOpacity = Math.pow(openPercent / 100, 1.5);
 
   const shakeClass = closing ? "door-shake-close" : shaking ? "door-shake" : "";
@@ -138,14 +137,14 @@ export function DoorPanel({ knockCount, doorOpened, doorOpenness }: DoorPanelPro
       {/* Etiket */}
       <div className="door-label">
         {doorOpened ? (
-          <span className="door-label-open">— kapı açık —</span>
+          <span className="door-label-open">— door open —</span>
         ) : (
           <span>
             {knockCount === 0 && openPercent < 1
-              ? "eşik kapalı"
+              ? "threshold closed"
               : knockCount === 0
-              ? `%${Math.round(openPercent)} aralık`
-              : `knock ${knockCount} · %${Math.round(openPercent)}`}
+              ? `${Math.round(openPercent)}% ajar`
+              : `knock ${knockCount} · ${Math.round(openPercent)}%`}
           </span>
         )}
       </div>
@@ -252,7 +251,7 @@ export function DoorPanel({ knockCount, doorOpened, doorOpenness }: DoorPanelPro
         />
       </div>
       <p className="door-progress-label">
-        {doorOpened ? "✦ açık ✦" : `${Math.round(openPercent)}% aralık`}
+        {doorOpened ? "✦ open ✦" : `${Math.round(openPercent)}% ajar`}
       </p>
     </div>
   );

@@ -16,7 +16,6 @@ export default function Home() {
 
   const finalMessage = messages.findLast((m) => m.isDoorOpening);
 
-  // Kapı açıldığında sinematik geçiş
   useEffect(() => {
     if (!doorOpenedNow) return;
     play();
@@ -35,7 +34,7 @@ export default function Home() {
         alignItems: "stretch",
       }}
     >
-      {/* ── SOL: Kapı Paneli ── */}
+      {/* ── LEFT: Door Panel ── */}
       <div
         style={{
           width:          "210px",
@@ -73,7 +72,7 @@ export default function Home() {
         />
       </div>
 
-      {/* ── SAĞ: Chat Alanı ── */}
+      {/* ── RIGHT: Chat Area ── */}
       <div
         style={{
           flex:          1,

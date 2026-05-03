@@ -9,7 +9,7 @@ export function useChat() {
   const [doorOpened,    setDoorOpened]    = useState(false);
   const [doorOpenedNow, setDoorOpenedNow] = useState(false);
   const [knockCount,    setKnockCount]    = useState(0);
-  // 0-100 arası kapı açıklığı — doğrudan sentiment score'dan türetiliyor
+  // Door openness 0–100, derived from the running sentiment score.
   const [doorOpenness,  setDoorOpenness]  = useState(0);
 
   const sendMessage = useCallback(
@@ -60,7 +60,6 @@ export function useChat() {
         }
 
         if (data.door_opened) {
-          // Kapı tamamen açıldı
           setDoorOpenness(100);
           setDoorOpened(true);
           setDoorOpenedNow(true);
@@ -78,17 +77,22 @@ export function useChat() {
               .then((blob) => {
                 const url = URL.createObjectURL(blob);
                 const audio = new Audio(url);
-                audio.play().catch((e) => console.warn("Audio error:", e));
+                setTimeout(() => {
+                  audio.play().catch((e) => console.warn("Audio error:", e));
+                }, 2500); // 2.5 saniye gecikme ile başlat
               })
               .catch((err) => console.warn("TTS skipped:", err));
           }
         } else {
-          // Kapı açılmadı: anlam yüküne göre kapı açıklığını ayarla
-          // Formül: %40 önceki + %60 yeni score — derin mesaj kapıyı açar, sığ mesaj kapatır
           const newScore = (data.sentiment_score ?? 0) * 100;
           setDoorOpenness((prev) => {
+            if (data.is_rejection) {
+              // Punish shallow answers with a fixed penalty based on how hollow they were.
+              if (newScore < 15) return Math.max(0, prev - 25);
+              if (newScore < 35) return Math.max(0, prev - 12);
+            }
+            // Meaningful but not yet enough — blend toward the new score.
             const blended = prev * 0.4 + newScore * 0.6;
-            // Kapı tamamen açılmadan max %85'te tut
             return Math.max(0, Math.min(85, blended));
           });
         }

@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "KNOCK — Eşik",
+  title: "KNOCK — Threshold",
   description:
-    "1973. Bob Dylan bir kapı yazıyor. Kapı seni bekliyor. Ama her vuruş yeterli değil.",
-  keywords: ["knock", "bob dylan", "1973", "threshold", "eşik", "ai", "chatbot"],
+    "1973. Bob Dylan writes a door. The door is waiting for you. But not every knock is enough.",
+  keywords: ["knock", "bob dylan", "1973", "threshold", "ai", "chatbot"],
   icons: {
     icon: "/favicon.jpg",
   },
@@ -17,13 +17,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="tr">
+    <html lang="en">
       <head>
-        {/* Tarayıcı varsayılan font pürüzlülüğünü devre dışı bırak — daktilo hissi için */}
         <meta name="color-scheme" content="dark" />
       </head>
       <body>
-        {/* Lamba titremesi katmanı — tüm sayfanın üzerinde */}
+        {/* Flicker layer — sits above the entire page */}
         <div
           aria-hidden="true"
           className="pointer-events-none fixed inset-0 z-50"
@@ -33,7 +32,7 @@ export default function RootLayout({
           }}
         />
 
-        {/* Amber ışık kaynağı — sol üst köşe, sanki bir lamba var */}
+        {/* Amber light source — top-left corner, as if a lamp is burning */}
         <div
           aria-hidden="true"
           className="pointer-events-none fixed -top-32 -left-32 z-0 h-96 w-96 rounded-full"
@@ -43,10 +42,9 @@ export default function RootLayout({
           }}
         />
 
-        {/* İçerik */}
         <main className="relative z-10 min-h-screen">{children}</main>
 
-        {/* Alt imza — 1973 */}
+        {/* Bottom signature — 1973 */}
         <footer
           className="fixed bottom-2 right-4 z-40 select-none font-mono text-xs opacity-20"
           style={{ color: "var(--color-dust)", letterSpacing: "0.2em" }}
