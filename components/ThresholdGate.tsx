@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 
 interface ThresholdGateProps {
   text: string;
-  knockCount: number;
+  knockNumber: number; // mesajın ait olduğu knock turu
 }
 
-export function ThresholdGate({ text, knockCount }: ThresholdGateProps) {
+export function ThresholdGate({ text, knockNumber }: ThresholdGateProps) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -15,10 +15,6 @@ export function ThresholdGate({ text, knockCount }: ThresholdGateProps) {
     const t = setTimeout(() => setVisible(true), 80);
     return () => clearTimeout(t);
   }, [text]);
-
-  // knockCount, cevap geldikten SONRA +1 yapılıyor
-  // yani bu mesaj kaçıncı knock'un cevabıysa onu göster
-  const displayKnock = knockCount; // örn. 1. red => knockCount=1 => "Knock 1"
 
   return (
     <div
@@ -31,13 +27,13 @@ export function ThresholdGate({ text, knockCount }: ThresholdGateProps) {
         {text}
       </p>
 
-      {/* Knock numarası — her zaman göster */}
+      {/* Knock numarası */}
       <p
         className="mt-1 font-mono text-xs"
         style={{ color: "var(--color-dust)", opacity: 0.3, letterSpacing: "0.18em" }}
       >
-        {displayKnock > 0
-          ? `— Knock ${displayKnock} —`
+        {knockNumber > 0
+          ? `— Knock ${knockNumber} —`
           : "— the door is silent —"}
       </p>
     </div>

@@ -17,6 +17,7 @@ export interface Message {
   sentimentScore?: number;
   isRejection?: boolean;
   isDoorOpening?: boolean;
+  knockNumber?: number;   // hangi knock turuna ait
   createdAt: Date;
 }
 

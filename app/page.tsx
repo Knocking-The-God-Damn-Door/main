@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChatWindow } from "@/components/ChatWindow";
-import { InputArea }  from "@/components/InputArea";
-import { DoorPanel }  from "@/components/DoorPanel";
-import { useChat }    from "@/hooks/useChat";
-import { useAudio }   from "@/hooks/useAudio";
+import { ChatWindow }     from "@/components/ChatWindow";
+import { InputArea }      from "@/components/InputArea";
+import { DoorPanel }      from "@/components/DoorPanel";
+import { TypewriterText } from "@/components/TypewriterText";
+import { useChat }        from "@/hooks/useChat";
+import { useAudio }       from "@/hooks/useAudio";
 import type { ScreenState } from "@/types";
 
 export default function Home() {
@@ -19,9 +20,7 @@ export default function Home() {
   useEffect(() => {
     if (!doorOpenedNow) return;
     play();
-    setScreenState("transitioning");
-    const t = setTimeout(() => setScreenState("final"), 1600);
-    return () => clearTimeout(t);
+    setScreenState("final");
   }, [doorOpenedNow, play, finalMessage]);
 
   const isFading = screenState === "transitioning";
@@ -30,7 +29,8 @@ export default function Home() {
     <div
       style={{
         display:    "flex",
-        minHeight:  "100vh",
+        height:     "100vh",
+        overflow:   "hidden",
         alignItems: "stretch",
       }}
     >
@@ -72,17 +72,25 @@ export default function Home() {
         />
       </div>
 
-      {/* ── RIGHT: Chat Area ── */}
+      {/* ── RIGHT: Chat Area (scroll container — tam genişlik, scrollbar ekran sağında) ── */}
       <div
         style={{
-          flex:          1,
-          display:       "flex",
-          flexDirection: "column",
-          maxWidth:      "660px",
-          margin:        "0 auto",
-          padding:       "2rem 2rem",
+          flex:      1,
+          overflowY: "auto",
+          height:    "100%",
         }}
       >
+        {/* İç içerik ortalanmış */}
+        <div
+          style={{
+            maxWidth:      "660px",
+            margin:        "0 auto",
+            padding:       "2rem 2rem",
+            display:       "flex",
+            flexDirection: "column",
+            minHeight:     "100%",
+          }}
+        >
         {/* FINAL STATE */}
         {screenState === "final" && finalMessage ? (
           <div className="dust-rise flex flex-1 flex-col items-center justify-center text-center px-6">
@@ -90,7 +98,11 @@ export default function Home() {
               className="font-mono text-base leading-loose"
               style={{ color: "var(--color-amber)" }}
             >
-              {finalMessage.content}
+              <TypewriterText
+                text={finalMessage.content}
+                speed={45}
+                className="font-mono text-base leading-loose"
+              />
             </p>
             <span
               className="mt-10 font-mono text-xs select-none"
@@ -110,7 +122,6 @@ export default function Home() {
               messages={messages}
               isFading={isFading}
               finalMessageId={finalMessage?.id}
-              knockCount={knockCount}
             />
 
             {/* Loading */}
@@ -132,6 +143,7 @@ export default function Home() {
             />
           </>
         )}
+        </div>
       </div>
     </div>
   );

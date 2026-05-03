@@ -1,6 +1,6 @@
 import type { SentimentResult } from "@/types";
 
-const THRESHOLD_MIN = 0.60;
+const THRESHOLD_MIN = 0.42;
 
 const DEPTH_KEYWORDS = [
   // English

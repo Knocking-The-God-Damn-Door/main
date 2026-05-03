@@ -9,63 +9,7 @@ interface DoorPanelProps {
   doorOpenness: number; // 0–100
 }
 
-/* ── Sound effects ──────────────────────────────────────── */
-function playCreakSound(intensity: number = 0.5) {
-  try {
-    const ctx  = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const osc  = ctx.createOscillator();
-    const gain = ctx.createGain();
-    const dist = ctx.createWaveShaper();
-
-    const curve  = new Float32Array(256);
-    const amount = 200;
-    for (let i = 0; i < 256; i++) {
-      const x = (i * 2) / 256 - 1;
-      curve[i] = ((Math.PI + amount) * x) / (Math.PI + amount * Math.abs(x));
-    }
-    dist.curve = curve;
-
-    osc.type = "sawtooth";
-    osc.frequency.setValueAtTime(80 + intensity * 60, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(30 + intensity * 15, ctx.currentTime + 0.9);
-    gain.gain.setValueAtTime(0.28, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.0);
-
-    osc.connect(dist); dist.connect(gain); gain.connect(ctx.destination);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 1.0);
-
-    const osc2 = ctx.createOscillator();
-    const g2   = ctx.createGain();
-    osc2.type  = "triangle";
-    osc2.frequency.setValueAtTime(110 + intensity * 60, ctx.currentTime + 0.1);
-    osc2.frequency.exponentialRampToValueAtTime(35, ctx.currentTime + 0.9);
-    g2.gain.setValueAtTime(0.12, ctx.currentTime + 0.1);
-    g2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.0);
-    osc2.connect(g2); g2.connect(ctx.destination);
-    osc2.start(ctx.currentTime + 0.1);
-    osc2.stop(ctx.currentTime + 1.0);
-
-    setTimeout(() => ctx.close(), 1300);
-  } catch (_) {}
-}
-
-function playCloseThud() {
-  try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const t0  = ctx.currentTime;
-    const osc  = ctx.createOscillator();
-    osc.type   = "sine";
-    osc.frequency.setValueAtTime(90, t0);
-    osc.frequency.exponentialRampToValueAtTime(35, t0 + 0.22);
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.16, t0);
-    gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.25);
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.start(t0); osc.stop(t0 + 0.26);
-    setTimeout(() => ctx.close(), 400);
-  } catch (_) {}
-}
+/* ses fonksiyonları kaldırıldı — sadece kapı açılma sesi lib/sounds.ts'ten */
 
 /* ── Component ──────────────────────────────────────────── */
 export function DoorPanel({ knockCount, doorOpened, doorOpenness }: DoorPanelProps) {
@@ -79,11 +23,11 @@ export function DoorPanel({ knockCount, doorOpened, doorOpenness }: DoorPanelPro
     const diff = doorOpenness - prev;
     if (!doorOpened) {
       if (diff > 3) {
-        playCreakSound(Math.min(doorOpenness / 100, 1));
+        // sadece görsel shake — gıcırtı sesi yok
         setShaking(true);
         setTimeout(() => setShaking(false), 500);
       } else if (diff < -3) {
-        playCloseThud();
+        // sadece görsel closing animasyonu — ses yok
         setClosing(true);
         setTimeout(() => setClosing(false), 600);
       }

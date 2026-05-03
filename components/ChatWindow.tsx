@@ -8,14 +8,12 @@ interface ChatWindowProps {
   messages: Message[];
   isFading: boolean;
   finalMessageId?: string;
-  knockCount: number;
 }
 
 export function ChatWindow({
   messages,
   isFading,
   finalMessageId,
-  knockCount,
 }: ChatWindowProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -24,13 +22,12 @@ export function ChatWindow({
   }, [messages]);
 
   return (
-    <div className="flex-1 overflow-y-auto py-4" style={{ minHeight: "60vh" }}>
+    <div className="flex-1 py-4">
       {messages.map((msg) => (
         <MessageBubble
           key={msg.id}
           message={msg}
           isFading={isFading && msg.id !== finalMessageId}
-          knockCount={knockCount}
         />
       ))}
       <div ref={bottomRef} />

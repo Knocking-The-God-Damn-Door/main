@@ -1,10 +1,10 @@
 import type { SentimentResult, ThresholdResponse, ThresholdState } from "@/types";
 
 // Door won't open until the user has sent at least this many prior messages.
-const MIN_PRIOR_USER_MESSAGES = 2;
+const MIN_PRIOR_USER_MESSAGES = 1;
 
 // Total depth-keyword hits across the whole conversation must reach this before the door opens.
-const MIN_CONVERSATION_KEYWORD_HITS = 7;
+const MIN_CONVERSATION_KEYWORD_HITS = 3;
 
 export interface ConversationContext {
   priorUserMessageCount: number;

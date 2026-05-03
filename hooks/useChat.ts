@@ -28,6 +28,7 @@ export function useChat() {
         id: crypto.randomUUID(),
         role: "user",
         content: text.trim(),
+        knockNumber: knockCount + 1,
         createdAt: new Date(),
       };
 
@@ -58,6 +59,7 @@ export function useChat() {
           sentimentScore: data.sentiment_score,
           isRejection: data.is_rejection,
           isDoorOpening: data.door_opened,
+          knockNumber: knockCount + 1,
           createdAt: new Date(),
         };
 

@@ -45,6 +45,13 @@ export function InputArea({ onSend, disabled, isGone, knockCount }: InputAreaPro
       className={`transition-all duration-1000 ${
         isGone ? "opacity-0 pointer-events-none translate-y-4" : "opacity-100"
       }`}
+      style={{
+        position:   "sticky",
+        bottom:     0,
+        paddingBottom: "1.5rem",
+        paddingTop:    "2rem",
+        background: "linear-gradient(to bottom, transparent 0%, #1C1917 35%)",
+      }}
     >
       <textarea
         ref={inputRef}
