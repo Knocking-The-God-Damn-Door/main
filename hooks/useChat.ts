@@ -95,7 +95,6 @@ export function useChat() {
           setDoorOpenedNow(true);
           if (data.message) setTimeout(() => playTTS(data.message), 2500);
         } else {
-          if (data.message) playTTS(data.message);
           const newScore = (data.sentiment_score ?? 0) * 100;
           setDoorOpenness((prev) => {
             if (data.is_rejection) {
